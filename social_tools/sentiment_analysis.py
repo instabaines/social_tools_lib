@@ -95,8 +95,9 @@ class SentimentAnalysisSpaCy:
         
         doc = self.nlp(text)
         return {
-            'polarity': doc._.polarity,
-            'subjectivity': doc._.subjectivity
+            'polarity': doc._.blob.polarity,
+            'subjectivity': doc._.blob.subjectivity,
+            "sentiment_assessments": doc._.blob.sentiment_assessments.assessments
         }
     
 
