@@ -2,7 +2,7 @@ from transformers import pipeline
 from textblob import TextBlob
 import logging
 from typing import Union, List
-
+from .utils import parallelize
 # Set up logging for error tracking
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -83,6 +83,7 @@ class EmotionDetection:
             tool (str): Choose between 'huggingface', 'textblob'.
             kwargs: Arguments specific to the chosen tool.
         """
+        self.tool = tool
         try:
             if tool == 'huggingface':
                 self.analyzer = EmotionDetectionHuggingFace(**kwargs)
@@ -106,9 +107,19 @@ class EmotionDetection:
             Union[dict, List[dict]]: Emotion analysis result (list if multiple texts are passed).
         """
         try:
-            result = self.analyzer.analyze(text)
+            # Check if HuggingFace tool or not, and handle accordingly
+            if isinstance(text, list) and self.tool != "huggingface":
+                logger.info(f"Using parallelization for {len(text)} inputs with tool: {self.tool}.")
+                
+                # Use parallelize_function for non-HuggingFace models with multiple inputs
+                result = parallelize(self.analyzer.analyze, text)
+            else:
+                # For single input or HuggingFace, process normally
+                result = self.analyzer.analyze(text)
+
             logger.info("Emotion detection successful.")
             return result
+
         except Exception as e:
             logger.error(f"Error during emotion detection: {e}")
             raise ValueError(f"Emotion detection failed: {e}")

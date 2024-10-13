@@ -5,6 +5,7 @@ import spacy
 from spacytextblob.spacytextblob import SpacyTextBlob
 from transformers import pipeline
 from transformers.pipelines import PipelineException
+from .utils import parallelize
 import subprocess
 import logging
 from typing import Union, List
@@ -159,6 +160,7 @@ class SentimentAnalysis:
             transformer_model: Optional model name for HuggingFace sentiment analysis.
             kwargs: Additional arguments for HuggingFace models, like 'return_all_scores'.
         """
+        self.tool = tool
         if tool == 'nltk':
             self.analyzer = SentimentAnalysisNLTK()
         elif tool == 'textblob':
@@ -182,4 +184,19 @@ class SentimentAnalysis:
         Returns:
             List[dict]: Sentiment analysis result.
         """
-        return self.analyzer.analyze(text)
+        try:
+            # Check if HuggingFace tool or not, and handle accordingly
+            if isinstance(text, list) and self.tool != "huggingface":
+                logger.info(f"Using parallelization for {len(text)} inputs with tool: {self.tool}.")
+                
+                # Use parallelize_function for non-HuggingFace models with multiple inputs
+                result = parallelize(self.analyzer.analyze, text)
+            else:
+                # For single input or HuggingFace, process normally
+                result = self.analyzer.analyze(text)
+
+            logger.info("Sentiement Analysis successful.")
+            return result
+        except Exception as e:
+            logger.error(f"Error during sentiment analysis: {e}")
+            raise ValueError(f"Sentiement Analysis failed: {e}")

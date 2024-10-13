@@ -2,7 +2,7 @@ import detoxify
 from transformers import pipeline
 from typing import List, Union
 import logging
-
+from .utils import parallelize
 # Set up logging for better error tracking
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -97,6 +97,7 @@ class ToxicityDetection:
             tool (str): Choose between 'detoxify' and 'transformer'.
             kwargs: Arguments specific to the chosen tool.
         """
+        self.tool = tool
         try:
             if tool == 'detoxify':
                 self.analyzer = DetoxifyWrapper(**kwargs)
@@ -120,7 +121,15 @@ class ToxicityDetection:
             List[dict]: Toxicity analysis result.
         """
         try:
-            result = self.analyzer.analyze(text)
+            # Check if HuggingFace tool or not, and handle accordingly
+            if isinstance(text, list) and self.tool != "huggingface":
+                logger.info(f"Using parallelization for {len(text)} inputs with tool: {self.tool}.")
+                
+                # Use parallelize_function for non-HuggingFace models with multiple inputs
+                result = parallelize(self.analyzer.analyze, text)
+            else:
+                # For single input or HuggingFace, process normally
+                result = self.analyzer.analyze(text)
             logger.info("Toxicity analysis successful.")
             return result
         except Exception as e:
