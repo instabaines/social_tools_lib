@@ -9,7 +9,7 @@ URL = "https://github.com/instabaines/social_tools_lib/"
 DOWNLOAD_URL = "https://github.com/instabaines/social_tools_lib/archive/refs/tags/0.1.tar.gz"
 EMAIL = "amureridwan002@gmail.com"
 AUTHOR = "Ridwan Amure"
-VERSION ="0.1" 
+VERSION ="1.0.0" 
 REQUIRES_PYTHON = ">=3.10.0"
 KEYWORDS = ["social tools", "sentiment analysis","toxicity","emotion analysis"]
 
@@ -36,6 +36,7 @@ setup(
     install_requires=list_reqs(),
     packages=find_packages(exclude=["tests",]),
     license = "MIT",
+    include_package_data=True,
     long_description=long_description,
     long_description_content_type='text/markdown',
     classifiers=[
