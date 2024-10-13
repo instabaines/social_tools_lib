@@ -5,6 +5,7 @@
 The **Social Tools** library provides a unified interface for interacting with various social analysis tools, including sentiment analysis, toxicity detection, emotion detection, and other natural language processing (NLP) models. With this library, developers can quickly analyze social media text, chat messages, or other forms of unstructured data for toxicity, sentiment, emotions, and more.
 
 ### Key Features
+
 - **Sentiment Analysis**: Determine whether the text expresses positive, negative, or neutral sentiment.
 - **Toxicity Detection**: Identify toxic language, hate speech, offensive comments, and inappropriate content.
 - **Emotion Detection**: Recognize emotions such as happiness, sadness, anger, and more.
