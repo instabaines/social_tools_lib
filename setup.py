@@ -10,6 +10,7 @@ EMAIL = "amureridwan002@gmail.com"
 AUTHOR = "Ridwan Amure"
 VERSION ="0.1" 
 REQUIRES_PYTHON = ">=3.10.0"
+KEYWORDS = ["social tools", "sentiment analysis","toxicity","emotion analysis"]
 
 cwd = os.path.abspath(os.path.dirname(__file__))
 try:
@@ -30,11 +31,14 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     classifiers=[
+        'Development Status :: 3 - Alpha',   
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Natural Language :: English",
         "Operating System :: OS Independent"
     ],
+    keywords= KEYWORDS
 )
