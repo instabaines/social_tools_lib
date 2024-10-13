@@ -1,9 +1,7 @@
 import detoxify
 from transformers import pipeline
-
 from typing import List, Union
 import logging
-
 
 # Set up logging for better error tracking
 logging.basicConfig(level=logging.INFO)
@@ -26,19 +24,21 @@ class DetoxifyWrapper:
             logger.error(f"Error initializing Detoxify model: {e}")
             raise ValueError(f"Failed to initialize Detoxify model: {e}")
 
-    def analyze(self, text: str) -> dict:
+    def analyze(self, text: Union[str, List[str]]) -> List[dict]:
         """
         Analyze text using Detoxify.
 
         Args:
-            text (str): Input text to analyze.
+            text (Union[str, List[str]]): Input text or list of texts to analyze.
 
         Returns:
-            dict: Toxicity analysis result with scores.
+            List[dict]: Toxicity analysis result with scores for each input.
         """
-        if not text or not isinstance(text, str):
-            raise ValueError("Input text must be a non-empty string.")
-        
+        if isinstance(text, str):
+            text = [text]  # Convert single string to list for consistency
+        elif not isinstance(text, list) or not all(isinstance(t, str) for t in text):
+            raise ValueError("Input must be a non-empty string or a list of non-empty strings.")
+
         try:
             result = self.model.predict(text)
             logger.info("Detoxify analysis successful.")
@@ -46,7 +46,6 @@ class DetoxifyWrapper:
         except Exception as e:
             logger.error(f"Error in Detoxify analysis: {e}")
             raise ValueError(f"Detoxify analysis failed: {e}")
-    
 
 
 class ToxicityTransformer:
@@ -65,18 +64,20 @@ class ToxicityTransformer:
             logger.error(f"Error initializing HuggingFace pipeline: {e}")
             raise ValueError(f"Failed to initialize HuggingFace pipeline: {e}")
 
-    def analyze(self, text: str) -> list:
+    def analyze(self, text: Union[str, List[str]]) -> List[dict]:
         """
         Analyze text using a HuggingFace transformer model.
 
         Args:
-            text (str): Input text to analyze.
+            text (Union[str, List[str]]): Input text or list of texts to analyze.
 
         Returns:
-            list: List of toxicity analysis results with labels and scores.
+            List[dict]: List of toxicity analysis results with labels and scores.
         """
-        if not text or not isinstance(text, str):
-            raise ValueError("Input text must be a non-empty string.")
+        if isinstance(text, str):
+            text = [text]  # Convert single string to list for consistency
+        elif not isinstance(text, list) or not all(isinstance(t, str) for t in text):
+            raise ValueError("Input must be a non-empty string or a list of non-empty strings.")
 
         try:
             result = self.model(text)
@@ -93,7 +94,7 @@ class ToxicityDetection:
         Initialize toxicity detection tool.
 
         Args:
-            tool (str): Choose between 'detoxify', and 'transformer'.
+            tool (str): Choose between 'detoxify' and 'transformer'.
             kwargs: Arguments specific to the chosen tool.
         """
         try:
@@ -102,21 +103,21 @@ class ToxicityDetection:
             elif tool == 'transformer':
                 self.analyzer = ToxicityTransformer(**kwargs)
             else:
-                raise ValueError("Invalid tool selection. Choose from  'detoxify', 'transformer'.")
+                raise ValueError("Invalid tool selection. Choose from 'detoxify' or 'transformer'.")
             logger.info(f"Toxicity detection tool '{tool}' initialized successfully.")
         except Exception as e:
             logger.error(f"Error initializing toxicity detection tool: {e}")
             raise ValueError(f"Failed to initialize toxicity detection tool: {e}")
 
-    def analyze(self, text: Union[str, List[str]]) -> dict:
+    def analyze(self, text: Union[str, List[str]]) -> List[dict]:
         """
         Analyze toxicity using the selected tool.
 
         Args:
-            text (Union[str, List[str]]): Input text to analyze.
+            text (Union[str, List[str]]): Input text or list of texts to analyze.
 
         Returns:
-            dict or list: Toxicity analysis result.
+            List[dict]: Toxicity analysis result.
         """
         try:
             result = self.analyzer.analyze(text)
