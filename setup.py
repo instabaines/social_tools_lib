@@ -6,7 +6,7 @@ import os
 NAME = "social_tools"
 DESCRIPTION = "The goal is to provide a unified interface to interact with various social analysis tools"
 URL = "https://github.com/instabaines/social_tools_lib/"
-DOWNLOAD_URL = "https://github.com/instabaines/social_tools_lib/archive/refs/tags/0.1.tar.gz"
+DOWNLOAD_URL = "https://github.com/instabaines/social_tools_lib/archive/refs/tags/1.0.0.tar.gz"
 EMAIL = "amureridwan002@gmail.com"
 AUTHOR = "Ridwan Amure"
 VERSION ="1.0.0" 
