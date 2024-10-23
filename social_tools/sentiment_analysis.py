@@ -8,18 +8,19 @@ from transformers.pipelines import PipelineException
 import subprocess
 import logging
 from typing import Union, List
-
+from .utils import download_nltk_model_files,download_spacy_model_files
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Download NLTK dependencies if not already downloaded
-nltk.download('vader_lexicon', quiet=True)
+
 
 
 class SentimentAnalysisNLTK:
     def __init__(self):
         self.analyzer = SentimentIntensityAnalyzer()
+        #download NLTK model if not present
+        download_nltk_model_files('vader_lexicon')
 
     def analyze(self, text: Union[str, List[str]]) -> List[dict]:
         """
@@ -61,29 +62,30 @@ class SentimentAnalysisTextBlob:
 
 
 class SentimentAnalysisSpaCy:
-    def __init__(self):
+    def __init__(self,model='en_core_web_sm'):
         """
         Initialize SpaCy with the spacytextblob pipeline.
         If the SpaCy model is not available, download it automatically.
         """
         try:
-            self.nlp = spacy.load("en_core_web_sm")
+            self.nlp = spacy.load(model)
         except OSError:
-            logger.info("SpaCy model 'en_core_web_sm' not found. Attempting to download it...")
-            self.download_spacy_model()
-            self.nlp = spacy.load("en_core_web_sm")
+            logger.info(f"SpaCy model {model} not found. Attempting to download it...")
+            self.download_spacy_model(model)
+            self.nlp = spacy.load(model)
 
         # Ensure spacytextblob is added to the pipeline
         if "spacytextblob" not in self.nlp.pipe_names:
             self.nlp.add_pipe("spacytextblob")
 
-    def download_spacy_model(self):
+    def download_spacy_model(self,model):
         """
-        Download the SpaCy 'en_core_web_sm' model.
+        Download the SpaCy  model.
         """
         try:
-            subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"], check=True)
-            logger.info("Model 'en_core_web_sm' downloaded successfully.")
+            download_spacy_model_files(model)
+            # subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"], check=True)
+            logger.info(f"Model '{model}' downloaded successfully.")
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to download SpaCy model: {e}")
             raise OSError("SpaCy model was not downloaded. Check SpaCy documentation for downloading models and try again.")
