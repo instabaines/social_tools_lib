@@ -182,15 +182,6 @@ A huge thank you to these projects and their respective communities for building
 
 ## Citation
 
-```markdown
-@misc{socialtool,
-  title={socialtool},
-  author={Ridwan Amure},
-  howpublished={Github. https://github.com/instabaines/social_tools_lib/},
-  year={2024}
-}
-```
-
 if you use the detoxify  module in this tool, kindly cite
 
 ```markdown
