@@ -119,7 +119,12 @@ class ToxicityDetection:
         Returns:
             List[dict]: Toxicity analysis result.
         """
+        
         try:
+            if isinstance(text, str):
+                text = [text]  # Convert single string to list for uniform processing
+            elif not isinstance(text, list) or not all(isinstance(t, str) for t in text):
+                raise ValueError("Input text must be a non-empty string or a list of non-empty strings.")
             result = self.analyzer.analyze(text)
             logger.info("Toxicity analysis successful.")
             return result

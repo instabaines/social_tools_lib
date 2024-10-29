@@ -19,7 +19,6 @@ def download_spacy_model_files(model="en_core_web_sm"):
     # Check if spaCy model is already downloaded
     try:
         nlp = spacy.load(model)
-        
     except OSError:
         print("Downloading spaCy '{model}' model")
         spacy.cli.download(model)

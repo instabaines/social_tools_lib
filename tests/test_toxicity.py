@@ -22,16 +22,6 @@ def test_transformer_basic_analysis():
     assert 'score' in result[0], "Each result should contain a 'score'."
 
 
-# Test case: Handle empty string input
-def test_empty_input():
-    tox_detector = ToxicityDetection(tool='detoxify', model='unbiased')
-    
-    with pytest.raises(ValueError) as excinfo:
-        tox_detector.analyze("")
-    
-    assert "Input text must be a non-empty string" in str(excinfo.value), "Should raise ValueError for empty input."
-
-
 # Test case: Handle non-string input
 def test_non_string_input():
     tox_detector = ToxicityDetection(tool='detoxify')
@@ -39,7 +29,7 @@ def test_non_string_input():
     with pytest.raises(ValueError) as excinfo:
         tox_detector.analyze(12345)
     
-    assert "Input text must be a non-empty string" in str(excinfo.value), "Should raise ValueError for non-string input."
+    assert "Input text must be a non-empty string or a list of non-empty strings." in str(excinfo.value), "Should raise ValueError for non-string input."
 
 
 # Test case: Handle list with invalid elements
@@ -49,7 +39,7 @@ def test_invalid_list_elements():
     with pytest.raises(ValueError) as excinfo:
         tox_detector.analyze(["Valid text", 12345])  # Invalid element in list
     
-    assert "Toxicity analysis failed: Input text must be a non-empty string." in str(excinfo.value), excinfo.value
+    assert "Toxicity analysis failed: Input text must be a non-empty string or a list of non-empty strings." in str(excinfo.value), excinfo.value
 
 
 

@@ -1,4 +1,3 @@
-import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 from textblob import TextBlob
 import spacy
@@ -8,6 +7,7 @@ from transformers.pipelines import PipelineException
 import subprocess
 import logging
 from typing import Union, List
+from functools import cached_property
 from .utils import download_nltk_model_files,download_spacy_model_files
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -17,10 +17,25 @@ logger = logging.getLogger(__name__)
 
 
 class SentimentAnalysisNLTK:
-    def __init__(self):
-        self.analyzer = SentimentIntensityAnalyzer()
-        #download NLTK model if not present
-        download_nltk_model_files('vader_lexicon')
+    @cached_property
+    def analyzer(self):
+        """
+        Initialize the NLTK SentimentIntensityAnalyzer and download the VADER lexicon if needed.
+        """
+        analyzer = SentimentIntensityAnalyzer()
+        self.download_nltk_model('vader_lexicon')
+        return analyzer
+
+    def download_nltk_model(self, model_name):
+        """
+        Download the specified NLTK model.
+        """
+        try:
+            download_nltk_model_files(model_name)
+            logger.info(f"NLTK model '{model_name}' downloaded successfully.")
+        except Exception as e:
+            logger.error(f"Failed to download NLTK model: {e}")
+            raise Exception("NLTK model was not downloaded. Check NLTK documentation for downloading models and try again.")
 
     def analyze(self, text: Union[str, List[str]]) -> List[dict]:
         """
@@ -32,10 +47,7 @@ class SentimentAnalysisNLTK:
         Returns:
             List[dict]: Sentiment analysis result with polarity scores.
         """
-        if isinstance(text, str):
-            text = [text]  # Convert single string to list for uniform processing
-        elif not isinstance(text, list) or not all(isinstance(t, str) for t in text):
-            raise ValueError("Input must be a non-empty string or a list of non-empty strings.")
+       
 
         results = [self.analyzer.polarity_scores(t) for t in text]
         return results
@@ -52,10 +64,6 @@ class SentimentAnalysisTextBlob:
         Returns:
             List[dict]: Sentiment analysis result with polarity and subjectivity.
         """
-        if isinstance(text, str):
-            text = [text]  # Convert single string to list for uniform processing
-        elif not isinstance(text, list) or not all(isinstance(t, str) for t in text):
-            raise ValueError("Input must be a non-empty string or a list of non-empty strings.")
 
         results = [{'polarity': TextBlob(t).sentiment.polarity, 'subjectivity': TextBlob(t).sentiment.subjectivity} for t in text]
         return results
@@ -67,17 +75,25 @@ class SentimentAnalysisSpaCy:
         Initialize SpaCy with the spacytextblob pipeline.
         If the SpaCy model is not available, download it automatically.
         """
+        self.model_name = model
+    @cached_property
+    def nlp(self):
+        """
+        Load the spaCy model with the spacytextblob pipeline.
+        If the model is not available, download it automatically.
+        """
         try:
-            self.nlp = spacy.load(model)
+            nlp = spacy.load(self.model_name)
         except OSError:
-            logger.info(f"SpaCy model {model} not found. Attempting to download it...")
-            self.download_spacy_model(model)
-            self.nlp = spacy.load(model)
+            logger.info(f"SpaCy model '{self.model_name}' not found. Attempting to download it...")
+            self.download_spacy_model()
+            nlp = spacy.load(self.model_name)
 
         # Ensure spacytextblob is added to the pipeline
-        if "spacytextblob" not in self.nlp.pipe_names:
-            self.nlp.add_pipe("spacytextblob")
+        if "spacytextblob" not in nlp.pipe_names:
+            nlp.add_pipe("spacytextblob")
 
+        return nlp
     def download_spacy_model(self,model):
         """
         Download the SpaCy  model.
@@ -100,10 +116,7 @@ class SentimentAnalysisSpaCy:
         Returns:
             List[dict]: Sentiment analysis result with polarity and subjectivity.
         """
-        if isinstance(text, str):
-            text = [text]  # Convert single string to list for uniform processing
-        elif not isinstance(text, list) or not all(isinstance(t, str) for t in text):
-            raise ValueError("Input must be a non-empty string or a list of non-empty strings.")
+        
 
         results = []
         for t in text:
@@ -116,18 +129,20 @@ class SentimentAnalysisSpaCy:
         return results
 
 
+
 class SentimentAnalysisHuggingFace:
     def __init__(self, model=None, **kwargs):
-        """
-        Initialize HuggingFace sentiment analysis pipeline.
+        self.model_name = model
+        self.kwargs = kwargs
 
-        Args:
-            model: Optional HuggingFace model name to use.
-            kwargs: Additional parameters like return_all_scores.
+    @cached_property
+    def model(self):
+        """
+        Initialize the HuggingFace sentiment analysis pipeline.
+        If the model is not available, it will be downloaded automatically.
         """
         try:
-            self.model = pipeline('sentiment-analysis', model=model, **kwargs)
-            logger.info(f"HuggingFace model '{model if model else 'default'}' loaded successfully.")
+            return pipeline('sentiment-analysis', model=self.model_name, **self.kwargs)
         except PipelineException as e:
             logger.error(f"Failed to load HuggingFace Pipeline: {e}")
             raise ValueError(f"Failed to load HuggingFace Pipeline: {e}")
@@ -142,10 +157,6 @@ class SentimentAnalysisHuggingFace:
         Returns:
             List[dict]: List of sentiment analysis results with label and score.
         """
-        if isinstance(text, str):
-            text = [text]  # Convert single string to list for uniform processing
-        elif not isinstance(text, list) or not all(isinstance(t, str) for t in text):
-            raise ValueError("Input must be a non-empty string or a list of non-empty strings.")
 
         results = self.model(text)
         return results
@@ -184,4 +195,8 @@ class SentimentAnalysis:
         Returns:
             List[dict]: Sentiment analysis result.
         """
+        if isinstance(text, str):
+            text = [text]  # Convert single string to list for uniform processing
+        elif not isinstance(text, list) or not all(isinstance(t, str) for t in text):
+            raise ValueError("Input must be a non-empty string or a list of non-empty strings.")
         return self.analyzer.analyze(text)
