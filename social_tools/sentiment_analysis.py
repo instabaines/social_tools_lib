@@ -22,8 +22,8 @@ class SentimentAnalysisNLTK:
         """
         Initialize the NLTK SentimentIntensityAnalyzer and download the VADER lexicon if needed.
         """
-        analyzer = SentimentIntensityAnalyzer()
         self.download_nltk_model('vader_lexicon')
+        analyzer = SentimentIntensityAnalyzer()
         return analyzer
 
     def download_nltk_model(self, model_name):
